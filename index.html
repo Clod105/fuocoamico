@@ -26,6 +26,7 @@
         .draggable-item {
             position: absolute; cursor: grab; user-select: none; touch-action: none; z-index: 10;
         }
+        .draggable-item.dragging { cursor: grabbing; }
         .draggable-item img { width: 150px; pointer-events: none; }
 
         /* TANK ANIMATION */
@@ -46,6 +47,8 @@
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
             display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000;
         }
+        #loading-screen.active { display: flex; }
+        
         .pixel-fuochini-anim {
             width: 130px; image-rendering: pixelated;
             animation: jump 0.5s infinite alternate ease-in-out;
@@ -64,57 +67,111 @@
 <body>
 
     <header>
-        <img src="mondo_pongo.png" class="header-item">
-        <img src="fuochini_centrali.png" class="header-item logo-central">
-        <img src="tank_header.png" class="header-item" id="tank-cart">
+        <img src="mondo_pongo.png" class="header-item" alt="Mondo Pongo">
+        <img src="fuochini_centrali.png" class="header-item logo-central" alt="Fuochini">
+        <img src="tank_header.png" class="header-item" id="tank-cart" alt="Tank Cart">
     </header>
 
     <main id="shop-floor">
-        <div class="draggable-item" style="top:25%; left:15%;"><img src="image_cap.png"></div>
-        <div class="draggable-item" style="top:35%; left:40%;"><img src="image_tee.png"></div>
-        <div class="draggable-item" style="top:55%; left:20%;"><img src="image_jeans.png"></div>
+        <div class="draggable-item" style="top:25%; left:15%;" data-x="0" data-y="0">
+            <img src="image_cap.png" alt="Cap">
+        </div>
+        <div class="draggable-item" style="top:35%; left:40%;" data-x="0" data-y="0">
+            <img src="image_tee.png" alt="T-shirt">
+        </div>
+        <div class="draggable-item" style="top:55%; left:20%;" data-x="0" data-y="0">
+            <img src="image_jeans.png" alt="Jeans">
+        </div>
     </main>
 
     <footer>
-        <img src="brand_name.png" class="brand-name">
+        <img src="brand_name.png" class="brand-name" alt="Brand Name">
     </footer>
 
     <div id="loading-screen">
-        <img src="fuochini_pixel_loading.png" class="pixel-fuochini-anim">
+        <img src="fuochini_pixel_loading.png" class="pixel-fuochini-anim" alt="Loading">
         <div class="loading-text-pixel">LOADING...</div>
         <div class="loading-bar"><div class="progress" id="bar"></div></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script>
+        let isProcessing = false;
+
+        // Inizializza interact.js per gli elementi draggable
         interact('.draggable-item').draggable({
             listeners: {
+                start(event) {
+                    event.target.classList.add('dragging');
+                },
                 move(event) {
                     const target = event.target;
                     const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
                     const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                    
                     target.style.transform = `translate(${x}px, ${y}px)`;
                     target.setAttribute('data-x', x);
                     target.setAttribute('data-y', y);
+                },
+                end(event) {
+                    event.target.classList.remove('dragging');
                 }
             }
         });
 
+        // Dropzone sul tank
         interact('#tank-cart').dropzone({
             accept: '.draggable-item',
             overlap: 0.1,
             ondrop: function (event) {
+                if (isProcessing) return;
+                isProcessing = true;
+
                 const item = event.relatedTarget;
                 const tank = event.target;
-                item.style.transition = '0.3s';
+                
+                // Disabilita tutti gli elementi draggable
+                interact('.draggable-item').draggable(false);
+                
+                // Animazione dell'item che scompare
+                item.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
                 item.style.transform = 'scale(0) rotate(360deg)';
+                item.style.opacity = '0';
+                
+                // Animazione del tank
                 tank.classList.add('tank-masticando');
+                
+                // Rimuovi l'item dal DOM e resetta il tank
                 setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'flex';
-                    setTimeout(() => { document.getElementById('bar').style.width = '100%'; }, 50);
-                    setTimeout(() => { location.reload(); }, 3500);
+                    item.remove();
+                    tank.classList.remove('tank-masticando');
+                }, 600);
+                
+                // Mostra loading screen
+                setTimeout(() => {
+                    const loadingScreen = document.getElementById('loading-screen');
+                    loadingScreen.classList.add('active');
+                    
+                    // Avvia la barra di progresso
+                    setTimeout(() => {
+                        document.getElementById('bar').style.width = '100%';
+                    }, 50);
+                    
+                    // Reload dopo il caricamento
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3500);
                 }, 600);
             }
+        });
+
+        // Gestione errori per immagini mancanti
+        document.querySelectorAll('img').forEach(img => {
+            img.onerror = function() {
+                console.warn('Immagine non trovata:', this.src);
+                this.style.opacity = '0.3';
+                this.alt = '❌ ' + (this.alt || 'Immagine non disponibile');
+            };
         });
     </script>
 </body>
