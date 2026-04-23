@@ -2,266 +2,272 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FUOCO AMICO | FRIENDLYFIRE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friendly Fire - Loading</title>
     <style>
-        :root { --brand-red: #ff3a3a; --legal-gray: #a0a0a0; }
-        
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; font-family: 'Press Start 2P', cursive; 
-            touch-action: none; -webkit-tap-highlight-color: transparent;
-            user-select: none; -webkit-user-select: none;
-            background: #2e4a1e url('sfondo_pongo.PNG') repeat fixed;
-            background-size: 450px;
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace; 
         }
 
-        /* KILLER PER LAYER ESTERNI */
-        [id*="gemini"], [class*="gemini"], iframe { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-
-        img { pointer-events: none; -webkit-user-drag: none; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.5)); }
-        .header-btn, .brand-pongo, .draggable-img, .btn-black, .btn-clear, .btn-qty, .admin-input, .input-form, .price-tag, .pay-choice { pointer-events: auto !important; }
-
-        header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px 25px; position: fixed; top: 0; left: 0; right: 0; 
-            z-index: 10000; height: 100px;
+        /* TEXTURE CRT GLOBALE (Sempre sopra a tutto) */
+        #crt-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 100; 
+            pointer-events: none; 
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 3px 100%;
+            animation: flicker 0.15s infinite;
         }
-        .header-btn { width: 100px; height: 100px; cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); object-fit: contain; }
-        .header-btn:active { transform: scale(1.2) rotate(5deg); }
 
-        #shop-floor { width: 100vw; height: 100vh; position: relative; z-index: 500; }
-        .item-container { position: absolute; display: flex; flex-direction: column; align-items: center; z-index: 600; cursor: grab; }
-        .item-container img { width: 130px; height: auto; }
-        .price-tag { font-size: 8px; margin-top: 5px; background: #000; color: #fff; padding: 4px 8px; border: 2px solid #000; }
-        .sold-out { filter: grayscale(1) !important; opacity: 0.5; pointer-events: none !important; }
+        @keyframes flicker {
+            0% { opacity: 0.95; }
+            50% { opacity: 0.85; }
+            100% { opacity: 0.95; }
+        }
 
-        @keyframes pacVomit { 0% { transform: scale(1); } 30% { transform: scale(2.6) rotate(15deg); } 60% { transform: scale(2.6) rotate(-15deg); } 100% { transform: scale(1); } }
-        .vomitando { animation: pacVomit 0.7s ease-in-out; }
+        /* SCHERMATA DI CARICAMENTO E MENU */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-image: url('momifire.png'); /* IMMAGINE DI CARICAMENTO ORIGINALE CON PERSONAGGI */
+            background-size: cover;
+            background-position: center;
+            display: block;
+        }
 
-        /* FOOTER BRAND: POSIZIONE FINALE E ANIMAZIONE SBLOCCATA */
-        footer { position: fixed; bottom: 32px; left: 0; right: 0; text-align: center; z-index: 100; pointer-events: none; }
-        .brand-pongo { width: 260px; max-width: 80%; cursor: pointer; transition: 0.2s; display: inline-block; pointer-events: auto; }
-        .brand-pongo:active { transform: scale(1.15) rotate(-3deg); }
+        /* BARRA DI CARICAMENTO */
+        #loading-wrapper {
+            position: absolute;
+            bottom: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20; 
+        }
 
-        .legal-ticker { position: fixed; bottom: 5px; width: 100%; white-space: nowrap; overflow: hidden; z-index: 40; font-size: 6px; color: var(--legal-gray); }
-        .ticker-content { display: inline-block; padding-left: 100%; animation: ticker 25s linear infinite; }
-        @keyframes ticker { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+        .loading-bar-container {
+            display: flex;
+            gap: 2px;
+            padding: 4px;
+            background-color: #2b2b2b;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, #1a1a1a 2px, #1a1a1a 4px);
+            border-top: 3px solid #666;
+            border-left: 3px solid #666;
+            border-bottom: 3px solid #111;
+            border-right: 3px solid #111;
+        }
 
-        /* CHECKOUT & ADMIN */
-        #checkout-panel { display: none; position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%); z-index: 15000; text-align: center; cursor: move; }
-        .overlay-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 30000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; }
-        .input-form { width: 90%; padding: 12px; border: 3px solid #000; font-family: 'Press Start 2P'; font-size: 8px; margin-bottom: 6px; outline: none; }
-        .btn-black { background: #000; color: #fff; padding: 15px; border: none; font-family: 'Press Start 2P'; font-size: 10px; box-shadow: 4px 4px 0 var(--brand-red); cursor: pointer; }
-        .pay-choice { display: flex; gap: 10px; margin-top: 10px; }
-        .pay-btn { padding: 10px; background: #eee; border: 2px solid #000; font-size: 8px; cursor: pointer; }
+        .segment {
+            width: 24px;
+            height: 32px;
+            background-color: #050505;
+            border: 1px solid #000;
+        }
+
+        .segment.lit-1 { background-color: #630000; }
+        .segment.lit-2 { background-color: #990000; }
+        .segment.lit-3 { background-color: #cc0000; }
+        .segment.lit-4 { background-color: #d82b00; }
+        .segment.lit-5 { background-color: #e65c00; }
+        .segment.lit-6 { background-color: #f28c00; }
+        .segment.lit-7 { background-color: #ffb300; }
+        .segment.lit-8 { background-color: #ffcc00; }
+        .segment.lit-9 { background-color: #ffe666; }
+        .segment.lit-10{ background-color: #fff9b3; }
+
+        /* TASTO START */
+        #start-btn {
+            display: none; 
+            position: absolute;
+            bottom: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20; 
+            background: transparent;
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            border: none;
+            text-shadow: 3px 3px 0px #000; 
+            cursor: pointer;
+            animation: blink 1s steps(2, start) infinite;
+        }
+
+        @keyframes blink {
+            to { visibility: hidden; }
+        }
+
+        /* MENU PRINCIPALE */
+        #main-menu {
+            display: none; 
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            flex-direction: column;
+            align-items: flex-start; 
+            gap: 15px;
+        }
+
+        .menu-item {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 26px;
+            font-weight: bold;
+            text-shadow: 3px 3px 0px #000;
+            text-transform: uppercase;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            color: #ffcc00; 
+        }
+
+        .menu-item:hover::before {
+            content: "▶";
+            position: absolute;
+            left: -30px;
+            top: 2px;
+            color: #ffcc00;
+        }
+
+        /* =========================================
+           STRUTTURA PAGINE BIANCHE (Sub-Menu)
+           ========================================= */
+        .sub-page {
+            display: none; /* Nascoste di default */
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #ffffff; /* Pagina bianca di base */
+            background-image: url('momifire_bg.png'); /* NUOVA IMMAGINE DI SFONDO SENZA PERSONAGGI */
+            background-size: cover;
+            background-position: center;
+            z-index: 10;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff; /* Testo chiaro per lo sfondo scuro */
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .back-btn {
+            margin-top: 50px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 20px;
+            font-weight: bold;
+            background: #000;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .back-btn:hover {
+            background: #ffcc00;
+            color: #000;
+        }
+
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-    <audio id="gnam-sound" src="suono_gnam.mp3" preload="auto"></audio>
+    <div id="crt-overlay"></div>
 
-    <header>
-        <img src="mondo_pongo.PNG" class="header-btn gnam-hover" onclick="showPage('page-contatti')">
-        <img src="fuochini_centrali.png" class="header-btn logo-central gnam-hover" id="master-logo">
-        <img src="tank_header.PNG" class="header-btn gnam-hover" id="tank-cart">
-    </header>
-
-    <main id="shop-floor">
-        <div class="item-container" id="item-0" style="top:25%; left:12%;" data-stock="10" data-price="45" data-id="0" data-name="CAP">
-            <img src="image_cap.PNG" class="draggable-img"><span class="price-tag">45€</span>
-        </div>
-        <div class="item-container" id="item-1" style="top:40%; left:55%;" data-stock="5" data-price="65" data-id="1" data-name="TEE">
-            <img src="image_tee.PNG" class="draggable-img"><span class="price-tag">65€</span>
-        </div>
-        <div class="item-container" id="item-2" style="top:60%; left:30%;" data-stock="15" data-price="90" data-id="2" data-name="JEANS">
-            <img src="image_jeans.PNG" class="draggable-img"><span class="price-tag">90€</span>
-        </div>
-    </main>
-
-    <div id="checkout-panel">
-        <div style="background:#fff; border:4px solid #000; padding:8px; font-size:9px; margin-bottom:10px;">CONTO: <span id="temp-total">0</span>€</div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn-clear" onclick="spitOutItems()" style="padding:10px; font-family:'Press Start 2P'; font-size:8px; cursor:pointer; background:#fff; border:3px solid #000;">SVUOTA</button>
-            <button class="btn-black" onclick="showCheckout()">PROCEDI</button>
-        </div>
-    </div>
-
-    <div id="checkout-page" class="overlay-page">
-        <div style="font-size:10px; margin-bottom:15px;">CHECKOUT</div>
-        <div id="cart-list" style="width:90%; max-height:140px; overflow-y:auto; margin-bottom:10px; border:2px solid #000; padding:10px; font-size:7px;"></div>
-        <div style="width:100%; display:flex; flex-direction:column; align-items:center;">
-            <input type="text" class="input-form" placeholder="NOME E COGNOME">
-            <input type="text" class="input-form" placeholder="NAZIONE E CITTÀ">
-            <input type="text" class="input-form" placeholder="VIA E RESIDENZA">
-            <div class="pay-choice">
-                <div class="pay-btn" onclick="alert('Apple Pay Selezionato')"> PAY</div>
-                <div class="pay-btn" onclick="alert('Carta Selezionata')">CARTE</div>
+    <div id="game-container">
+        <div id="loading-wrapper">
+            <div class="loading-bar-container" id="loading-bar">
+                <div class="segment" id="seg-1"></div>
+                <div class="segment" id="seg-2"></div>
+                <div class="segment" id="seg-3"></div>
+                <div class="segment" id="seg-4"></div>
+                <div class="segment" id="seg-5"></div>
+                <div class="segment" id="seg-6"></div>
+                <div class="segment" id="seg-7"></div>
+                <div class="segment" id="seg-8"></div>
+                <div class="segment" id="seg-9"></div>
+                <div class="segment" id="seg-10"></div>
             </div>
-            <button class="btn-black" onclick="alert('ORDINE INVIATO!')" style="width:90%; margin-top:15px;">PAGA <span id="final-total">0</span>€</button>
-            <p onclick="closePages()" style="cursor:pointer; font-size:8px; margin-top:10px;">ANNULLA</p>
         </div>
+
+        <button id="start-btn">PRESS START</button>
+
+        <nav id="main-menu">
+            <div class="menu-item" onclick="openPage('PAGINA-STORE')">STORE</div>
+            <div class="menu-item" onclick="openPage('PAGINA-PICTURES')">PICTURES</div>
+            <div class="menu-item" onclick="openPage('PAGINA-MUSIC')">MUSIC</div>
+            <div class="menu-item" onclick="openPage('PAGINA-CONTACTS')">CONTACTS</div>
+        </nav>
     </div>
 
-    <div id="page-contatti" class="overlay-page">
-        <div style="font-size:12px;">MONDO PONGO</div>
-        <p style="font-size:8px; margin:20px 0;">EMAIL: INFO@FUOCOAMICO.IT<br>IG: @FUOCOAMICO</p>
-        <button class="btn-black" onclick="closePages()">CHIUDI</button>
+    <div id="PAGINA-STORE" class="sub-page">
+        <h1>PAGINA STORE</h1>
+        <button class="back-btn" onclick="closePage()">BACK</button>
     </div>
 
-    <div id="page-admin" class="overlay-page" style="background:#111; color:#fff;">
-        <div style="color:var(--brand-red);">DATABASE</div>
-        <div id="admin-fields" style="width:100%; margin-top:20px;"></div>
-        <button onclick="saveAdminChanges()" style="background:green; color:#fff; padding:15px; font-family:'Press Start 2P'; border:none;">SALVA</button>
-        <button onclick="closePages()" style="margin-top:10px; background:#fff; font-family:'Press Start 2P'; border:none; padding:5px;">ESCI</button>
+    <div id="PAGINA-PICTURES" class="sub-page">
+        <h1>PAGINA PICTURES</h1>
+        <button class="back-btn" onclick="closePage()">BACK</button>
     </div>
 
-    <footer><img src="brand_name.png" class="brand-pongo gnam-hover"></footer>
-
-    <div class="legal-ticker">
-        <div class="ticker-content">All rights reserved fuocoamico (friendlyfire) copyright ©️ 2026-2036. Made in Italy to the World. Win alone</div>
+    <div id="PAGINA-MUSIC" class="sub-page">
+        <h1>PAGINA MUSIC</h1>
+        <button class="back-btn" onclick="closePage()">BACK</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <div id="PAGINA-CONTACTS" class="sub-page">
+        <h1>PAGINA CONTACTS</h1>
+        <button class="back-btn" onclick="closePage()">BACK</button>
+    </div>
+
     <script>
-        const gnam = document.getElementById('gnam-sound');
-        const tank = document.getElementById('tank-cart');
-        let cart = {};
-        let logoClicks = 0;
-
-        function playGnam() { gnam.currentTime = 0; gnam.play().catch(()=>{}); }
-        function showPage(id) { document.getElementById(id).style.display = 'flex'; playGnam(); }
-        function closePages() { document.querySelectorAll('.overlay-page').forEach(p => p.style.display = 'none'); }
-
-        document.querySelectorAll('.gnam-hover').forEach(el => {
-            el.addEventListener('touchstart', playGnam);
-            el.addEventListener('mouseenter', playGnam);
-        });
-
-        document.getElementById('master-logo').addEventListener('click', () => {
-            logoClicks++;
-            if(logoClicks >= 3) {
-                const pass = prompt("PASSWORD:");
-                if(pass === "FRIENDLYFIRE26") openAdmin();
-                logoClicks = 0;
-            } else {
-                setTimeout(() => { if(logoClicks > 0 && logoClicks < 3) { alert("RARITÀ IN ARRIVO!"); logoClicks = 0; } }, 400);
-            }
-        });
-
-        function checkStock() {
-            for(let i=0; i<3; i++) {
-                const el = document.getElementById(`item-${i}`);
-                if(parseInt(el.getAttribute('data-stock')) <= 0) el.classList.add('sold-out');
-                else el.classList.remove('sold-out');
-            }
-        }
-        checkStock();
-
-        interact('.item-container').draggable({
-            listeners: { 
-                start(event) { event.target.style.transition = "none"; event.target.style.zIndex = 99999; },
-                move(event) {
-                    const t = event.target;
-                    const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-                    const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                    t.style.transform = `translate(${x}px, ${y}px)`;
-                    t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-                },
-                end(event) { event.target.style.transition = "transform 0.4s ease"; event.target.style.zIndex = 600; }
-            }
-        });
-
-        interact('#checkout-panel').draggable({
-            listeners: { move(event) {
-                const t = event.target;
-                const x = (parseFloat(t.getAttribute('data-x')) || 0) + event.dx;
-                const y = (parseFloat(t.getAttribute('data-y')) || 0) + event.dy;
-                t.style.transform = `translate(calc(-50% + ${x}px), ${y}px)`;
-                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-            }}
-        });
-
-        interact('#tank-cart').dropzone({
-            accept: '.item-container:not(.sold-out)', 
-            ondrop: function (event) {
-                const item = event.relatedTarget;
-                const id = item.getAttribute('data-id');
-                playGnam();
-                if(cart[id]) { cart[id].qty++; } else { 
-                    cart[id] = {name: item.getAttribute('data-name'), price: parseInt(item.getAttribute('data-price')), qty: 1}; 
+        document.addEventListener("DOMContentLoaded", () => {
+            let currentSegment = 1;
+            const totalSegments = 10;
+            
+            const loadingInterval = setInterval(() => {
+                if (currentSegment <= totalSegments) {
+                    document.getElementById(`seg-${currentSegment}`).classList.add(`lit-${currentSegment}`);
+                    currentSegment++;
+                } else {
+                    clearInterval(loadingInterval);
+                    document.getElementById('loading-wrapper').style.display = 'none';
+                    document.getElementById('start-btn').style.display = 'block';
                 }
-                item.style.opacity = '0'; item.style.pointerEvents = 'none';
-                updateUI();
-                tank.classList.add('masticando');
-                setTimeout(() => tank.classList.remove('masticando'), 600);
-            }
+            }, 300); 
+
+            document.getElementById('start-btn').addEventListener('click', () => {
+                document.getElementById('start-btn').style.display = 'none';
+                document.getElementById('main-menu').style.display = 'flex';
+            });
         });
 
-        function spitOutItems() {
-            cart = {}; playGnam();
-            tank.classList.add('vomitando');
-            setTimeout(() => tank.classList.remove('vomitando'), 700);
-            document.querySelectorAll('.item-container').forEach(el => {
-                el.style.opacity = '1'; el.style.pointerEvents = 'auto'; el.style.transform = 'translate(0,0)';
-                el.setAttribute('data-x', 0); el.setAttribute('data-y', 0);
-            });
-            updateUI();
+        // Funzione per aprire le pagine
+        function openPage(pageId) {
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById(pageId).style.display = 'flex';
         }
 
-        function updateUI() {
-            let total = 0; for(let k in cart) total += cart[k].price * cart[k].qty;
-            document.getElementById('temp-total').innerText = total;
-            document.getElementById('final-total').innerText = total;
-            document.getElementById('checkout-panel').style.display = total > 0 ? 'block' : 'none';
-        }
-
-        function showCheckout() {
-            const list = document.getElementById('cart-list'); list.innerHTML = '';
-            for(let k in cart) {
-                list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span>${cart[k].name}</span>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-qty" onclick="changeQty('${k}',-1)">-</button>
-                        <span>${cart[k].qty}</span>
-                        <button class="btn-qty" onclick="changeQty('${k}',1)">+</button>
-                    </div>
-                    <span>${cart[k].price * cart[k].qty}€</span>
-                </div>`;
-            }
-            showPage('checkout-page');
-        }
-
-        function changeQty(id, delta) {
-            cart[id].qty += delta;
-            if(cart[id].qty <= 0) {
-                delete cart[id];
-                const el = document.getElementById('item-' + id);
-                el.style.opacity = '1'; el.style.pointerEvents = 'auto'; el.style.transform = 'translate(0,0)';
-            }
-            updateUI();
-            if(Object.keys(cart).length === 0) closePages(); else showCheckout();
-        }
-
-        function openAdmin() {
-            const fields = document.getElementById('admin-fields'); fields.innerHTML = '';
-            for(let i=0; i<3; i++) {
-                const item = document.getElementById(`item-${i}`);
-                fields.innerHTML += `<div style="font-size:6px; margin-bottom:10px;">ART ${i+1}: <input id="ad-n-${i}" style="width:60px" value="${item.getAttribute('data-name')}"> <input id="ad-p-${i}" style="width:30px" value="${item.getAttribute('data-price')}"> STOCK: <input id="ad-s-${i}" style="width:20px" value="${item.getAttribute('data-stock')}"></div>`;
-            }
-            showPage('page-admin');
-        }
-
-        function saveAdminChanges() {
-            for(let i=0; i<3; i++) {
-                const item = document.getElementById(`item-${i}`);
-                item.setAttribute('data-name', document.getElementById(`ad-n-${i}`).value);
-                item.setAttribute('data-price', document.getElementById(`ad-p-${i}`).value);
-                item.setAttribute('data-stock', document.getElementById(`ad-s-${i}`).value);
-                item.querySelector('.price-tag').innerText = item.getAttribute('data-price') + '€';
-            }
-            checkStock(); alert("AGGIORNATO!"); closePages();
+        // Funzione per tornare al menu
+        function closePage() {
+            // Nasconde tutte le sub-page
+            const pages = document.querySelectorAll('.sub-page');
+            pages.forEach(p => p.style.display = 'none');
+            
+            // Mostra di nuovo il menu principale
+            document.getElementById('game-container').style.display = 'block';
         }
     </script>
 </body>
